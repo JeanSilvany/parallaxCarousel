@@ -1,5 +1,10 @@
-import { useRef } from "react";
-import { View, Dimensions, Animated } from "react-native";
+import { View, Dimensions } from "react-native";
+import Animated, {
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 
 const { width } = Dimensions.get("screen");
 
@@ -15,25 +20,56 @@ const images = [
 ];
 
 export default function App() {
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollX = useSharedValue(0);
 
-  const renderItem = ({ item, index }) => {
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
+  const ImageView = ({ item, index }) => {
     const inputRange = [
       (index - 1) * width,
       index * width,
       (index + 1) * width,
     ];
-    const translateX = scrollX.interpolate({
-      inputRange,
-      outputRange: [-width * 0.7, 0, width * 0.7],
+
+    const outputRange = [-width * 0.7, 0, width * 0.7];
+    const translateXAnimatedStyle = useAnimatedStyle(() => {
+      return {
+        transform: [
+          { translateX: interpolate(scrollX.value, inputRange, outputRange) },
+        ],
+      };
     });
 
+    return (
+      <Animated.Image
+        source={{ uri: item }}
+        style={[
+          translateXAnimatedStyle,
+          {
+            width: 300 * 1.4,
+            height: 500,
+            borderRadius: 8,
+            padding: 10,
+            position: "absolute",
+          },
+        ]}
+        resizeMode="cover"
+      />
+    );
+  };
+
+  const renderItem = ({ item, index }) => {
     return (
       <View
         style={{
           width: width,
           justifyContent: "center",
           alignItems: "center",
+          flex: 1,
         }}
       >
         <View
@@ -57,20 +93,7 @@ export default function App() {
               borderRadius: 14,
             }}
           >
-            <Animated.Image
-              source={{ uri: item }}
-              style={[
-                {
-                  width: 300 * 1.4,
-                  height: 500,
-                  borderRadius: 8,
-                  padding: 10,
-                  position: "absolute",
-                  transform: [{ translateX }],
-                },
-              ]}
-              resizeMode="cover"
-            />
+            <ImageView item={item} index={index} />
           </View>
         </View>
       </View>
@@ -80,14 +103,12 @@ export default function App() {
   return (
     <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
       <Animated.FlatList
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: true }
-        )}
+        onScroll={onScroll}
         horizontal
         data={images}
         renderItem={renderItem}
         pagingEnabled
+        scrollEventThrottle={16}
       />
     </View>
   );

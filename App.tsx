@@ -1,4 +1,4 @@
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, ScrollView } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -125,7 +125,7 @@ export default function App() {
           const DotsWidthAnimatedStyle = useAnimatedStyle(() => {
             const inputRange = images.map((_, i) => i * width);
             const outputRange = inputRange.map((item, i) =>
-              i === index ? 30 : 10
+              i === index ? 20 : 10
             );
 
             return {
@@ -144,12 +144,28 @@ export default function App() {
             };
           });
 
+          const DotsScaleAnimatedStyle = useAnimatedStyle(() => {
+            const inputRange = images.map((_, i) => i * width);
+            const outputRange = inputRange.map((item, i) =>
+              i === index ? 1 : 0.8
+            );
+
+            return {
+              transform: [
+                {
+                  scale: interpolate(scrollX.value, inputRange, outputRange),
+                },
+              ],
+            };
+          });
+
           return (
             <Animated.View
               key={index}
               style={[
                 DotsWidthAnimatedStyle,
                 DotsOpacityAnimatedStyle,
+                DotsScaleAnimatedStyle,
                 {
                   height: 10,
                   backgroundColor: "gray",

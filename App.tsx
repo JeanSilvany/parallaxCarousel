@@ -109,7 +109,58 @@ export default function App() {
         renderItem={renderItem}
         pagingEnabled
         scrollEventThrottle={16}
+        showsHorizontalScrollIndicator={false}
       />
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          bottom: 120,
+          width: "100%",
+        }}
+      >
+        {images.map((_, index) => {
+          const DotsWidthAnimatedStyle = useAnimatedStyle(() => {
+            const inputRange = images.map((_, i) => i * width);
+            const outputRange = inputRange.map((item, i) =>
+              i === index ? 30 : 10
+            );
+
+            return {
+              width: interpolate(scrollX.value, inputRange, outputRange),
+            };
+          });
+
+          const DotsOpacityAnimatedStyle = useAnimatedStyle(() => {
+            const inputRange = images.map((_, i) => i * width);
+            const outputRange = inputRange.map((item, i) =>
+              i === index ? 1 : 0.5
+            );
+
+            return {
+              opacity: interpolate(scrollX.value, inputRange, outputRange),
+            };
+          });
+
+          return (
+            <Animated.View
+              key={index}
+              style={[
+                DotsWidthAnimatedStyle,
+                DotsOpacityAnimatedStyle,
+                {
+                  height: 10,
+                  backgroundColor: "gray",
+                  marginHorizontal: 5,
+                  borderRadius: 5,
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 }
